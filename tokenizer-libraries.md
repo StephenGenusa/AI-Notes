@@ -1065,7 +1065,6 @@ The Hugging Face `Trainer` API simplifies training and evaluation. It expects da
 
 ### Research Papers
 
-*   **Neural Machine Translation of Rare Words with Subword Units (BPE)**: [Sennrich et al., 2015](https://arxiv.org/abs/1508.07909)
 *   **Google's Neural Machine Translation System (WordPiece)**: [Wu et al., 2016](https://arxiv.org/abs/1609.08144)
 *   **SentencePiece: A simple and language independent subword tokenizer...**: [Kudo & Richardson, 2018](https://arxiv.org/abs/1808.06226)
 *   **Subword Regularization (Unigram LM for SentencePiece)**: [Kudo, 2018](https://arxiv.org/abs/1804.10959)
