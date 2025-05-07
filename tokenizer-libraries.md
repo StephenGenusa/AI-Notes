@@ -69,49 +69,49 @@ The following chart maps common LLM tokenization requirements to suitable Python
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ LLM TOKENIZATION LIBRARY SELECTION GUIDE                                                               │
-│ ═════════════════════════════════════════════════════════════════════════════════════════════════════ │
+│ LLM TOKENIZATION LIBRARY SELECTION GUIDE                                                                │
+│ ═══════════════════════════════════════════════════════════════════════════════════════════════════════ │
 │                                                                                                         │
 │ ┌───────────────────────────────────────────────────────────────────────────────────────────────────┐   │
 │ │ MODEL-SPECIFIC TOKENIZERS (For accuracy with specific LLM families)                               │   │
 │ │ ─────────────────────────────────────────────────────────────────────────────                     │   │
 │ │                                                                                                   │   │
-│ │  ● OpenAI Models (GPT-3.5/4):        ▶ Tiktoken                                                  │   │
-│ │  ● Anthropic Models (Claude):        ▶ Anthropic Tokenizer                                       │   │
-│ │  ● Meta Models (Llama, Llama 2):     ▶ Llama-tokenizer, SentencePiece                            │   │
-│ │  ● Google Models (Gemini):           ▶ Gemini Tokenizer                                          │   │
-│ │  ● Local deployment (llama.cpp):     ▶ llama.cpp tokenizer                                       │   │
-│ │  ● GPT4All:                          ▶ GPT4All tokenizer                                         │   │
-│ │  ● Hugging Face Hub models:          ▶ HF Transformers Tokenizers (AutoTokenizer)                │   │
+│ │  ● OpenAI Models (GPT-3.5/4):        ▶ Tiktoken                                                   │   │
+│ │  ● Anthropic Models (Claude):        ▶ Anthropic Tokenizer                                        │   │
+│ │  ● Meta Models (Llama, Llama 2):     ▶ Llama-tokenizer, SentencePiece                             │   │
+│ │  ● Google Models (Gemini):           ▶ Gemini Tokenizer                                           │   │
+│ │  ● Local deployment (llama.cpp):     ▶ llama.cpp tokenizer                                        │   │
+│ │  ● GPT4All:                          ▶ GPT4All tokenizer                                          │   │
+│ │  ● Hugging Face Hub models:          ▶ HF Transformers Tokenizers (AutoTokenizer)                 │   │
 │ │                                                                                                   │   │
 │ └───────────────────────────────────────────────────────────────────────────────────────────────────┘   │
 │                                                                                                         │
-│ ┌─────────────────────────────────────┐  ┌─────────────────────────────────────────────────────────┐   │
-│ │ USE CASE: WORKING WITH MULTIPLE     │  │ USE CASE: TRAINING CUSTOM TOKENIZERS                    │   │
-│ │ PRE-TRAINED LLMs                    │  │ (Domain-specific or multilingual needs)                 │   │
-│ │ ───────────────────────────────     │  │ ──────────────────────────────────────────             │   │
-│ │ ▶ Hugging Face Transformers         │  │ ▶ SentencePiece          - Language-agnostic, widely used │   │
-│ │   Universal access to model-specific │  │ ▶ Hugging Face tokenizers - Advanced features, versatile  │   │
-│ │   tokenizers with consistent API     │  │ ▶ tokenmonster          - Fast training, optimization    │   │
-│ └─────────────────────────────────────┘  └─────────────────────────────────────────────────────────┘   │
+│ ┌─────────────────────────────────────┐  ┌────────────────────────────────────────────────────────────┐ │
+│ │ USE CASE: WORKING WITH MULTIPLE     │  │ USE CASE: TRAINING CUSTOM TOKENIZERS                       │ │
+│ │ PRE-TRAINED LLMs                    │  │ (Domain-specific or multilingual needs)                    │ │
+│ │ ───────────────────────────────     │  │ ─────────────────────────────────────────────────────────  │ │
+│ │ ▶ Hugging Face Transformers         │  │ ▶ SentencePiece           - Language-agnostic, widely used │ │
+│ │   Universal access to model-specific│  │ ▶ Hugging Face tokenizers - Advanced features, versatile   │ │
+│ │   tokenizers with consistent API    │  │ ▶ tokenmonster            - Fast training, optimization    │ │
+│ └─────────────────────────────────────┘  └────────────────────────────────────────────────────────────┘ │
 │                                                                                                         │
-│ ┌─────────────────────────────────────┐  ┌─────────────────────────────────────────────────────────┐   │
-│ │ USE CASE: OPTIMIZING FOR SPEED      │  │ USE CASE: MULTILINGUAL & SPECIALIZED TEXT               │   │
-│ │ (Highest performance needs)         │  │ (Non-English or technical domain focus)                 │   │
-│ │ ───────────────────────────────     │  │ ──────────────────────────────────────────             │   │
-│ │ ▶ tokenmonster     - Fastest general │  │ ▶ SentencePiece         - Best for diverse scripts      │   │
-│ │ ▶ Tiktoken        - Fast for OpenAI  │  │ ▶ Llama-tokenizer       - Good multilingual support     │   │
-│ │ ▶ HF Fast Tokenizers - Good balance  │  │ ▶ Model-specific tokenizers for specialized domains     │   │
-│ └─────────────────────────────────────┘  └─────────────────────────────────────────────────────────┘   │
+│ ┌─────────────────────────────────────┐  ┌─────────────────────────────────────────────────────────┐    │
+│ │ USE CASE: OPTIMIZING FOR SPEED      │  │ USE CASE: MULTILINGUAL & SPECIALIZED TEXT               │    │
+│ │ (Highest performance needs)         │  │ (Non-English or technical domain focus)                 │    │
+│ │ ───────────────────────────────     │  │ ──────────────────────────────────────────              │    │
+│ │ ▶ tokenmonster     - Fastest general│  │ ▶ SentencePiece         - Best for diverse scripts      │    │
+│ │ ▶ Tiktoken        - Fast for OpenAI │  │ ▶ Llama-tokenizer       - Good multilingual support     │    │
+│ │ ▶ HF Fast Tokenizers - Good balance │  │ ▶ Model-specific tokenizers for specialized domains     │    │
+│ └─────────────────────────────────────┘  └─────────────────────────────────────────────────────────┘    │
 │                                                                                                         │
 │ ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐     │
 │ │ USE CASE: TOKEN COUNTING & TEXT SPLITTING (For context window management)                       │     │
 │ │ ─────────────────────────────────────────────────────────────────────────────                   │     │
 │ │                                                                                                 │     │
-│ │ ▶ LangChain TokenTextSplitter - Framework integration, wraps other tokenizers                  │     │
-│ │ ▶ Tiktoken                    - Quick token counting for OpenAI models                         │     │
-│ │ ▶ Anthropic Tokenizer         - Accurate counts for Claude models                              │     │
-│ │ ▶ Hugging Face AutoTokenizer  - Versatile for any HF-supported model                          │     │
+│ │ ▶ LangChain TokenTextSplitter - Framework integration, wraps other tokenizers                   │     │
+│ │ ▶ Tiktoken                    - Quick token counting for OpenAI models                          │     │
+│ │ ▶ Anthropic Tokenizer         - Accurate counts for Claude models                               │     │
+│ │ ▶ Hugging Face AutoTokenizer  - Versatile for any HF-supported model                            │     │
 │ │                                                                                                 │     │
 │ └─────────────────────────────────────────────────────────────────────────────────────────────────┘     │
 │                                                                                                         │
