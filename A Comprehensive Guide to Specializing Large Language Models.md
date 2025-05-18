@@ -9,19 +9,36 @@
         *   [4.1.1 Key Considerations for Base Model Selection](#411-key-considerations-for-base-model-selection)
     *   [4.2 Decision: Perform Further Pre-training (FP) on Domain Corpus?](#42-decision-perform-further-pre-training-fp-on-domain-corpus)
     *   [4.3 STAGE 1: Domain-Adaptive Pretraining (DAPT) / Further Pre-training (FP) / Corpus Ingestion](#43-stage-1-domain-adaptive-pretraining-dapt--further-pre-training-fp--corpus-ingestion)
+        *   [TL;DR for Beginners: Making a Smart LLM Smarter in *Your* Specific Area](#tldr-for-beginners)
         *   [4.3.1 Understanding the Spectrum of DAPT Techniques: An Overview](#431-understanding-the-spectrum-of-dapt-techniques-an-overview)
         *   [4.3.2 Continued Pre-training (CPT): The Foundational Approach to DAPT](#432-continued-pre-training-cpt-the-foundational-approach-to-dapt)
             *   [4.3.2.1 Core Mechanics: Next-Token Prediction on Raw Text (for CPT)](#4321-core-mechanics-next-token-prediction-on-raw-text-for-cpt)
             *   [4.3.2.2 Practical Implementation of CPT (Hugging Face)](#4322-practical-implementation-of-cpt-hugging-face)
             *   [4.3.2.3 Outcome of Corpus Ingestion via CPT](#4323-outcome-of-corpus-ingestion-via-cpt)
-        *   [4.3.3 Advanced Data Considerations for DAPT (Applicable to all DAPT methods)](#433-advanced-data-considerations-for-dapt-applicable-to-all-dapt-methods)
+        *   [4.3.3 Data Considerations for DAPT (Applicable to all DAPT methods)](#433-data-considerations-for-dapt-applicable-to-all-dapt-methods)
+            *   [Sourcing and Curating the Domain-Specific Corpus](#sourcing-and-curating)
+            *   [Data Cleaning and Preprocessing Pipelines](#data-cleaning-preprocessing)
+                *   [Format Conversion & Text Extraction (incl. Structural Fidelity, Semantic Boundary Preservation)](#format-conversion-extraction)
+                *   [Deduplication](#deduplication)
+                *   [Quality Filtering](#quality-filtering)
+                *   [Normalization](#normalization)
+                *   [PII/Sensitive Data Handling](#pii-handling)
+            *   [Data Augmentation Strategies for DAPT](#data-augmentation)
+            *   [Ethical Implications and Bias Mitigation](#ethical-implications-bias)
+            *   [Dataset Versioning](#dataset-versioning)
+            *   [Tokenizer Adaptation/Extension (Cross-reference Section 7.1)](#tokenizer-adaptation-brief)
         *   [4.3.4 Advanced DAPT Techniques: Tailoring Adaptation Beyond Standard CPT](#434-advanced-dapt-techniques-tailoring-adaptation-beyond-standard-cpt)
             *   [4.3.4.1 Contrastive Learning for Domain Adaptation](#4341-contrastive-learning-for-domain-adaptation)
             *   [4.3.4.2 Domain-Specific Objective Functions & Auxiliary Tasks](#4342-domain-specific-objective-functions--auxiliary-tasks)
             *   [4.3.4.3 Curriculum Learning for DAPT](#4343-curriculum-learning-for-dapt)
             *   [4.3.4.4 Domain Mixing Strategies for DAPT](#4344-domain-mixing-strategies-for-dapt)
-            *   [4.3.4.5 Masked Language Modeling (MLM) Adaptation (for BERT-style models)](#4345-masked-language-modeling-mlm-adaptation-for-bert-style-models)
-            *   [4.3.4.6 Tokenizer Adaptation (as part of an Advanced DAPT strategy)](#4346-tokenizer-adaptation-as-part-of-an-advanced-dapt-strategy)
+            *   [4.3.4.5 Structure-Aware Completion Training (Implicit Task Formulation)](#4345-structure-aware-completion-training-implicit-task-formulation)
+            *   [4.3.4.6 Implicit Instruction Pre-training (Stylistic Corpus Preparation)](#4346-implicit-instruction-pre-training-stylistic-corpus-preparation)
+            *   [4.3.4.7 Retrieval-Augmented Pre-training (ReAP) for DAPT](#4347-retrieval-augmented-pre-training-reap-for-dapt)
+            *   [4.3.4.8 Explicit Multi-Task Domain-Adaptive Pretraining](#4348-explicit-multi-task-domain-adaptive-pretraining)
+            *   [4.3.4.9 Domain-Adversarial Training for DAPT](#4349-domain-adversarial-training-for-dapt)
+            *   [4.3.4.10 Masked Language Modeling (MLM) Adaptation (Primarily for BERT-style models)](#43410-masked-language-modeling-mlm-adaptation-primarily-for-bert-style-models)
+            *   [4.3.4.11 Tokenizer Adaptation (as an integral part of an Advanced DAPT strategy)](#43411-tokenizer-adaptation-as-an-integral-part-of-an-advanced-dapt-strategy)
     *   [4.4 Decision: Perform Supervised Fine-tuning (SFT) for Instructions?](#44-decision-perform-supervised-fine-tuning-sft-for-instructions)
     *   [4.5 STAGE 2: Supervised Fine-tuning (SFT) / Instruction Fine-tuning](#45-stage-2-supervised-fine-tuning-sft--instruction-fine-tuning)
         *   [4.5.1 Teaching Verbatim Recall via SFT (e.g., Declaration of Independence)](#451-teaching-verbatim-recall-via-sft-eg-declaration-of-independence)
@@ -248,7 +265,36 @@ Path F: Use Aligned Instruction-Following Domain LLM (potentially with RAG for g
 
 ### 4.3 STAGE 1: Domain-Adaptive Pretraining (DAPT) / Further Pre-training (FP) / Corpus Ingestion
 
-*   **Purpose:** This initial stage of specialization, broadly referred to as **Domain-Adaptive Pretraining (DAPT)**, aims to adapt a general-purpose base LLM to a specific target domain. Alternative common names for this stage include **Further Pre-training (FP)** or **Corpus Ingestion**. The core objective is to make the model more "fluent" in the target domain's language, style, common knowledge patterns, and terminology. This helps embed foundational domain knowledge directly into the model's parameters, potentially enhancing its performance on subsequent domain-specific tasks and reducing over-reliance on external knowledge sources (like RAG) for basic domain understanding. This stage can also be used to teach a specific authorial style if the corpus consists of that author's works (see Section 4.11.1).
+**TL;DR for Beginners: Making a Smart LLM Smarter in *Your* Specific Area**
+
+Imagine you have a generally smart Large Language Model (LLM), like one good at writing emails or common knowledge questions. But you need it to be an expert in something specific, like your company's technical manuals, legal documents, or a particular author's writing style. This stage, called **Domain-Adaptive Pretraining (DAPT)**, **Further Pre-training (FP)**, or simply **Corpus Ingestion**, is all about teaching the LLM this specialized knowledge.
+*   **What's the Goal?** To make the LLM "fluent" in your domain's language, jargon, and common ways of explaining things. This makes it perform better on your specific tasks later.
+*   **What do you need?**
+    1.  A base pre-trained LLM (the generally smart one).
+    2.  A large collection of text from your specific domain (e.g., your manuals, documents).
+*   **How is it done? The Options:**
+    *   **Easy Start: Continued Pre-training (CPT)**
+        *   **What it is:** You simply continue training the base LLM on your domain text using the same method it was originally trained with (usually predicting the next word in a sentence).
+        *   **Difficulty:** ⭐⭐☆☆☆ (Relatively Easy). It mainly involves preparing your text data and using standard training scripts.
+        *   **Best for:** Getting a good general adaptation to your domain's vocabulary and style without too much complexity. This is the most common first step.
+    *   **More Power (and Complexity): Advanced DAPT Techniques**
+        *   **What it is:** These are more specialized methods to achieve deeper or more targeted adaptation. They often require more setup, data work, or custom training logic.
+        *   **Examples & Difficulty:**
+            *   **Teaching specific writing styles/formats using your document's structure** (e.g., making the model answer implicit questions from headings). (⭐⭐⭐☆☆ - Moderate)
+            *   **Using the document's structure to create learning tasks** (e.g., teaching the model to "fill in" a missing subsection given its heading). (⭐⭐⭐⭐☆ - Advanced)
+            *   **Combining your domain text with general text** to prevent the model from forgetting common knowledge. (⭐⭐⭐☆☆ - Moderate)
+            *   **Training with a "retriever" that fetches relevant info** while the model learns from your corpus, making it better at using lots of information at once. (⭐⭐⭐⭐⭐ - Very Advanced)
+            *   **Adding special training goals beyond just next-word prediction,** like identifying key terms or classifying text. (⭐⭐⭐⭐☆ - Advanced)
+        *   **Best for:** When CPT isn't enough, or you have very specific adaptation goals (e.g., high accuracy on nuanced tasks, learning specific structural patterns, or handling very complex domain knowledge).
+*   **Key Considerations:**
+    *   **Data is King:** The quality and quantity of your domain text are crucial. Cleaning and preparing it well is essential.
+    *   **Computational Cost:** Training LLMs, even DAPT, can require significant computing power (GPUs) and time. Techniques like Parameter-Efficient Fine-Tuning (PEFT, see Section 5.1) can help reduce this cost.
+
+This section will now dive deep into these concepts, providing details on how to implement them and their pros and cons.
+
+---
+
+*   **Overall Purpose:** This initial stage of specialization, broadly referred to as **Domain-Adaptive Pretraining (DAPT)**, aims to adapt a general-purpose base LLM to a specific target domain. Alternative common names for this stage include **Further Pre-training (FP)** or **Corpus Ingestion**. The core objective is to make the model more "fluent" in the target domain's language, style, common knowledge patterns, and terminology. This helps embed foundational domain knowledge directly into the model's parameters, potentially enhancing its performance on subsequent domain-specific tasks and reducing over-reliance on external knowledge sources (like RAG) for basic domain understanding. This stage can also be used to teach a specific authorial style if the corpus consists of that author's works (see Section 4.11.1).
 *   **Input:** A Base Pre-trained LLM and a substantial raw text corpus from the target domain (e.g., an electric utility specification manual, scientific papers, legal documents, financial reports, collected works of an author).
 *   **Process:** The model undergoes additional pre-training, primarily or exclusively on the domain corpus. The specific techniques employed can range from straightforward continuation of the original pre-training objective to more specialized, domain-aware methods.
 *   **Output:** A **Domain-Adapted LLM**, which has internalized aspects of the target domain.
@@ -256,13 +302,13 @@ Path F: Use Aligned Instruction-Following Domain LLM (potentially with RAG for g
     *   ✔ Improved understanding and generation of domain-specific text.
     *   ✔ Better performance on downstream domain tasks due to more relevant internal representations.
     *   ✔ Capability to capture nuanced stylistic elements of the domain.
-    *   ✔ Knowledge becomes embedded in the model's parameters, enabling more inherent domain understanding.
+    *   ✔ Knowledge becomes embedded in the model's parameters, enabling more inherent domain understanding without necessarily relying on external retrieval at inference time for foundational knowledge.
 *   **General Disadvantages/Considerations for DAPT:**
     *   ✔ Requires a significant, high-quality domain corpus.
     *   ✔ Can be computationally intensive (though PEFT, see Section 5.1, helps manage this).
-    *   ✔ Potential for "catastrophic forgetting" of general knowledge or "style collapse" (overfitting to the domain corpus) if not managed well; PEFT and careful data mixing can mitigate this.
+    *   ✔ Potential for "catastrophic forgetting" of general knowledge or "style collapse" (overfitting to the domain corpus) if not managed well; PEFT, careful data mixing, and appropriate learning rates can mitigate this.
     *   ✔ Biases present in the domain corpus will likely be learned by the model.
-*   **PEFT Relevance:** Parameter-Efficient Fine-Tuning (PEFT) techniques (see Section 5.1) are highly recommended for DAPT. They allow adaptation of large models with significantly fewer trainable parameters, preserving general knowledge more effectively and reducing computational costs.
+*   **PEFT Relevance:** Parameter-Efficient Fine-Tuning (PEFT) techniques (see Section 5.1) are highly recommended for DAPT. They allow adaptation of large models with significantly fewer trainable parameters, preserving general knowledge more effectively and reducing computational costs and training time.
 
 #### 4.3.1 Understanding the Spectrum of DAPT Techniques: An Overview
 
@@ -270,16 +316,16 @@ Domain-Adaptive Pretraining (DAPT) is not a monolithic process but rather a cate
 
 #### 4.3.2 Continued Pre-training (CPT): The Foundational Approach to DAPT
 
-*   **Definition:** CPT is the most widely used method for DAPT. It involves directly continuing the base model's original pre-training objective—typically next-token prediction for causal LMs (like GPT-family, Llama, Mistral) or masked language modeling for encoder-focused models (like BERT)—using the new domain-specific corpus. The model learns the new domain's characteristics simply by processing more text from that domain under the same learning paradigm it was initially trained with.
+*   **Definition:** CPT is the most widely used and straightforward method for DAPT. It involves directly continuing the base model's original pre-training objective—typically next-token prediction for causal LMs (like GPT-family, Llama, Mistral) or masked language modeling for encoder-focused models (like BERT)—using the new domain-specific corpus. The model learns the new domain's characteristics simply by processing more text from that domain under the same learning paradigm it was initially trained with.
 *   **Pros (Specific to CPT as a DAPT method):**
     *   ✔ Simplicity: Relatively easy to implement using standard pre-training scripts and setups.
     *   ✔ Generality: Effective for infusing broad domain knowledge and style.
-    *   ✔ Robustness: Less prone to drastic deviations from the base model's capabilities when paired with PEFT and moderate training.
+    *   ✔ Robustness: Generally less prone to drastic deviations from the base model's capabilities when paired with PEFT and moderate training duration/data.
 *   **Cons (Specific to CPT as a DAPT method):**
-    *   ✔ Potentially slow adaptation for highly specialized or divergent domains.
+    *   ✔ Potentially slow adaptation for highly specialized or divergent domains compared to more targeted techniques.
     *   ✔ May require very large domain corpora to capture deep nuances if the domain is vastly different from the base model's original training data.
-    *   ✔ May not optimally learn specific types of domain knowledge that aren't well-captured by next-token prediction alone.
-*   **Implementation Difficulty:** ⭐⭐☆☆☆ (Easy) - Primarily involves data preparation and running existing pre-training scripts with adjusted hyperparameters (e.g., lower learning rate, e.g., 1e-5 to 5e-5).
+    *   ✔ May not optimally learn specific types of structured domain knowledge (e.g., tabular data, complex relationships) that aren't well-captured by next-token prediction alone on linearized text.
+*   **Implementation Difficulty:** ⭐⭐☆☆☆ (Easy) - Primarily involves data preparation and running existing pre-training scripts with adjusted hyperparameters (e.g., typically a lower learning rate than initial pre-training, e.g., 1e-5 to 5e-5).
 
 ##### 4.3.2.1 Core Mechanics: Next-Token Prediction on Raw Text (for CPT)
 The fundamental process involves training the LLM to predict the next token in a sequence drawn from the domain corpus.
@@ -289,22 +335,29 @@ The fundamental process involves training the LLM to predict the next token in a
     ```python
     # from transformers import AutoTokenizer
     # tokenizer = AutoTokenizer.from_pretrained("base-model-name")
+    # # Example: Read a single large text file for simplicity
     # with open("domain_corpus.txt", "r", encoding="utf-8") as f:
     #     text = f.read()
-    # token_ids = tokenizer.encode(text)
+    # # For large corpora, process in chunks or use Hugging Face datasets library streaming
+    # token_ids = tokenizer.encode(text) # This converts the string to token IDs
     ```
 2.  **Creating Training Instances (Input/Target Pairs):**
-    *   The tokenized corpus is divided into chunks of a fixed `block_size` (see Section 5.2).
+    *   The tokenized corpus is virtually concatenated and then divided into chunks of a fixed `block_size` (e.g., 1024, 2048, 4096 tokens, see Section 5.2 for details on `block_size` / `max_seq_length`).
     *   For each chunk, the model learns to predict `token[i]` given `tokens[0...i-1]`.
-    *   Hugging Face's `DataCollatorForLanguageModeling(mlm=False)` handles creating `input_ids` and `labels` (which are typically `input_ids` shifted for causal LM).
-3.  **Model Architecture (Transformer Decoder):**
-    *   Input tokens are embedded, positional encodings are added, and they pass through Transformer decoder blocks (causal self-attention, feed-forward networks).
-    *   The output layer produces logits for each vocabulary token at each position.
+    *   Hugging Face's `DataCollatorForLanguageModeling(mlm=False)` typically handles creating `input_ids` and `labels` (where `labels` are usually `input_ids` shifted by one position to the left for causal LM).
+3.  **Model Architecture (Transformer Decoder for Causal LMs):**
+    *   Input tokens are passed to an embedding layer to get vector representations.
+    *   Positional encodings are added to these embeddings to provide sequence order information.
+    *   These encoded embeddings pass through multiple Transformer decoder blocks. Each block typically contains:
+        *   Causal (Masked) Self-Attention: Allows each token to attend to previous tokens in the sequence (but not future ones).
+        *   Feed-Forward Network: A fully connected neural network applied independently at each position.
+        *   Layer Normalization and Residual Connections.
+    *   The output from the final Transformer block is passed to a linear layer (often tied to the input embedding weights) followed by a softmax function to produce a probability distribution over the entire vocabulary for the next token at each position.
 4.  **Loss Calculation (Cross-Entropy Loss):**
-    *   Logits are converted to probabilities (softmax).
-    *   Cross-entropy loss measures the difference between the model's predicted probability distribution and the actual next token.
+    *   The cross-entropy loss measures the dissimilarity between the model's predicted probability distribution for the next token and the actual next token (one-hot encoded).
 5.  **Backpropagation and Weight Updates:**
-    *   Gradients of the loss are computed and used by an optimizer (e.g., AdamW) to update the model's trainable parameters (or PEFT adapter parameters - see Section 5.1).
+    *   Gradients of the loss with respect to the model's trainable parameters are computed using backpropagation.
+    *   An optimizer (e.g., AdamW) uses these gradients to update the model's parameters (or PEFT adapter parameters - see Section 5.1), aiming to minimize the loss.
 
 ##### 4.3.2.2 Practical Implementation of CPT (Hugging Face)
 ```python
@@ -313,162 +366,330 @@ from transformers import (
     Trainer, TrainingArguments,
     DataCollatorForLanguageModeling
 )
-from datasets import load_dataset
+from datasets import load_dataset # Recommended for handling large datasets
 
-# MODEL_NAME = "gpt2" # Base model to fine-tune
-# TEXT_FILES = ["path/to/your/domain_corpus.txt"] # e.g., your 1,000-page utility manual
-# OUTPUT_DIR = "./domain_adapted_model"
-# BLOCK_SIZE = 1024 # Max sequence length (see Section 5.2)
+# # --- Configuration ---
+# MODEL_NAME = "mistralai/Mistral-7B-v0.1" # Example base model
+# # For very large text files, it's better to provide them as a list or use dataset loading patterns
+# TEXT_FILES = {"train": ["path/to/your/domain_corpus_part1.txt", "path/to/your/domain_corpus_part2.txt"]} 
+# OUTPUT_DIR = "./domain_adapted_mistral_7b"
+# BLOCK_SIZE = 2048 # Max sequence length for the model (check model's max_position_embeddings, refer to Section 5.2)
+# LEARNING_RATE = 2e-5 # Common for fine-tuning/DAPT
+# NUM_TRAIN_EPOCHS = 1 # For DAPT, often 1-3 epochs is sufficient depending on corpus size
+# PER_DEVICE_TRAIN_BATCH_SIZE = 2 # Adjust based on GPU memory
+# GRADIENT_ACCUMULATION_STEPS = 8 # Effective batch size = batch_size * num_gpus * grad_accum
+# SAVE_STEPS = 5000 # How often to save checkpoints
+# LOGGING_STEPS = 100
 
-# # 1. Tokenizer
+# # --- 1. Tokenizer ---
 # tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-# if tokenizer.pad_token is None: tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+# # Add pad token if it doesn't exist (e.g., for Llama, Mistral models)
+# if tokenizer.pad_token is None:
+#     tokenizer.add_special_tokens({'pad_token': '[PAD]'}) # Or use an existing special token like eos_token if appropriate
 
-# # 2. Load and Preprocess Dataset
+# # --- 2. Load and Preprocess Dataset ---
+# # `load_dataset` is efficient for large files and offers streaming and mapping capabilities
 # raw_datasets = load_dataset("text", data_files=TEXT_FILES)
-# def tokenize_function(examples): return tokenizer(examples["text"])
-# tokenized_datasets = raw_datasets.map(tokenize_function, batched=True, num_proc=4, remove_columns=["text"])
+
+# def tokenize_function(examples):
+#     # Tokenize the text. `truncation=True` and `max_length` can be used if not grouping texts later,
+#     # but for CPT, it's common to concatenate and then chunk.
+#     return tokenizer(examples["text"])
+
+# tokenized_datasets = raw_datasets.map(
+#     tokenize_function,
+#     batched=True,
+#     num_proc=4, # Adjust based on your CPU cores
+#     remove_columns=["text"] # Remove the original text column
+# )
 
 # def group_texts(examples):
+#     # Concatenate all texts.
 #     concatenated_examples = {k: sum(examples[k], []) for k in examples.keys()}
 #     total_length = len(concatenated_examples[list(examples.keys())[0]])
-#     if total_length >= BLOCK_SIZE: total_length = (total_length // BLOCK_SIZE) * BLOCK_SIZE
+#     # We drop the small remainder, we could add padding if the model supported it instead of this drop,
+#     # but for CPT, dropping the last partial batch is common.
+#     if total_length >= BLOCK_SIZE:
+#         total_length = (total_length // BLOCK_SIZE) * BLOCK_SIZE
+#     # Split by chunks of max_len.
 #     result = {
 #         k: [t[i : i + BLOCK_SIZE] for i in range(0, total_length, BLOCK_SIZE)]
 #         for k, t in concatenated_examples.items()
 #     }
-#     result["labels"] = result["input_ids"].copy() # Labels are shifted by DataCollator/Trainer
+#     # Create labels for Causal LM. The trainer/collator will handle shifting.
+#     result["labels"] = result["input_ids"].copy()
 #     return result
-# lm_datasets = tokenized_datasets.map(group_texts, batched=True, num_proc=4)
 
-# # 3. Model (Potentially with PEFT adapter initialized here - see Section 5.1)
-# model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
-# model.resize_token_embeddings(len(tokenizer)) # If pad_token was added
-
-# # 4. Data Collator
-# data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
-
-# # 5. Training Arguments
-# # For Continued Pre-training, a lower learning rate might be appropriate
-# training_args = TrainingArguments(
-#     output_dir=OUTPUT_DIR, overwrite_output_dir=True, num_train_epochs=1, # Adjust as needed
-#     per_device_train_batch_size=4, # Adjust based on GPU memory
-#     save_steps=5000, 
-#     learning_rate=5e-5, # Default, consider 1e-5 to 5e-5 for CPT
-#     weight_decay=0.01,
-#     # fp16=True, # If GPU supports
+# lm_datasets = tokenized_datasets.map(
+#     group_texts,
+#     batched=True,
+#     num_proc=4, # Adjust based on your CPU cores
 # )
 
-# # 6. Trainer
-# trainer = Trainer(model=model, args=training_args, data_collator=data_collator, train_dataset=lm_datasets["train"])
+#_# --- 3. Model ----
+# model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+# # Resize token embeddings if a new pad_token (or other tokens) was added to the tokenizer
+# model.resize_token_embeddings(len(tokenizer)) 
+# # For PEFT (e.g., LoRA), the model would be modified here (see Section 5.1)
+# # from peft import get_peft_model, LoraConfig, TaskType
+# # peft_config = LoraConfig(task_type=TaskType.CAUSAL_LM, inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1)
+# # model = get_peft_model(model, peft_config)
+# # model.print_trainable_parameters()
+
+# # --- 4. Data Collator ---
+# # Data collator for language modeling. `mlm=False` for causal language modeling.
+# data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+
+# # --- 5. Training Arguments ---
+# training_args = TrainingArguments(
+#     output_dir=OUTPUT_DIR,
+#     overwrite_output_dir=True,
+#     num_train_epochs=NUM_TRAIN_EPOCHS,
+#     per_device_train_batch_size=PER_DEVICE_TRAIN_BATCH_SIZE,
+#     gradient_accumulation_steps=GRADIENT_ACCUMULATION_STEPS,
+#     save_steps=SAVE_STEPS,
+#     save_total_limit=2, # Only keep the last 2 checkpoints
+#     logging_steps=LOGGING_STEPS,
+#     learning_rate=LEARNING_RATE,
+#     weight_decay=0.01,
+#     adam_beta1=0.9,
+#     adam_beta2=0.999,
+#     adam_epsilon=1e-8,
+#     lr_scheduler_type="cosine", # Or "linear", "constant"
+#     warmup_ratio=0.03, # Percentage of total steps for warmup
+#     # fp16=True, # Enable mixed precision training if your GPU supports it (requires NVIDIA apex or built-in PyTorch AMP)
+#     # bf16=True, # Enable for Ampere GPUs and newer
+#     report_to="tensorboard", # Or "wandb", "mlflow"
+#     # Add deepspeed config if using DeepSpeed (see Section 5.3)
+# )
+
+#_# --- 6. Trainer ---
+# trainer = Trainer(
+#     model=model,
+#     args=training_args,
+#     data_collator=data_collator,
+#     train_dataset=lm_datasets["train"], # Assuming your dataset split is named "train"
+#_    # eval_dataset=lm_datasets["validation"] # If you have a validation set
+# )
+
+# # --- Start Training ---
 # # trainer.train()
-# # model.save_pretrained(OUTPUT_DIR)
+
+# # --- Save Final Model & Tokenizer ---
+# # model.save_pretrained(OUTPUT_DIR) # For PEFT, this saves the adapter; for full fine-tuning, the whole model.
 # # tokenizer.save_pretrained(OUTPUT_DIR)
 ```
-*(For PEFT integration, see Section 5.1. The `model` would be wrapped with `get_peft_model` before training.)*
+*(Note: The PEFT integration part is commented out but shown for context, as it's detailed in Section 5.1. For full DAPT without PEFT, the base model parameters are updated directly. Ensure `fp16` or `bf16` is used if hardware supports it for speed and memory benefits. Error handling and more robust dataset processing (e.g., streaming for huge datasets) would be needed for production.)*
 
 ##### 4.3.2.3 Outcome of Corpus Ingestion via CPT
 The model's parameters adjust to reflect the statistical patterns of the domain:
-*   **Vocabulary Familiarity:** ✔️ Higher probability for domain-specific terms.
-*   **Conceptual Relationships:** ✔️ Implicit learning of how concepts relate.
-*   **Argumentative/Explanatory Structure:** ✔️ Learns common discourse patterns of the domain.
-*   **Style:** ✔️ Picks up the typical writing style of the corpus.
+*   **Vocabulary Familiarity:** ✔️ The model becomes more familiar with domain-specific terms, acronyms, and phrases, assigning them higher probabilities in relevant contexts.
+*   **Conceptual Relationships:** ✔️ Implicitly learns how concepts within the domain relate to each other, based on their co-occurrence and contextual usage.
+*   **Argumentative/Explanatory Structure:** ✔️ Learns common discourse patterns, a.k.a. "schemas", of the domain (e.g., how technical specifications are typically laid out, how legal arguments are structured).
+*   **Style:** ✔️ Picks up the typical writing style (formality, tone, sentence structure) of the corpus. For example, training on Shakespeare will make the model generate Shakespearean-style text.
 
-#### 4.3.3 Advanced Data Considerations for DAPT (Applicable to all DAPT methods)
+#### 4.3.3 Data Considerations for DAPT (Applicable to all DAPT methods)
 
-Regardless of the specific DAPT technique chosen (CPT or more advanced methods), the quality and preparation of the domain corpus are paramount.
-*   "What are best practices for **sourcing and curating the domain-specific corpus**? How do we handle duplicates, boilerplate text, OCR errors, or low-quality documents?"
-    *   **Data Cleaning and Preprocessing Pipelines:** ✔️ Detail crucial steps and techniques:
-        *   *Deduplication:* Explain the need and mention methods for identifying and removing exact or near-duplicate documents/passages (e.g., MinHash, semantic hashing).
-        *   *Quality Filtering:* Discuss strategies to programmatically identify and remove low-quality text (e.g., based on perplexity scores from a general model, length constraints, heuristic rules for boilerplate removal, language identification).
-        *   *PII/Sensitive Data Handling:* Emphasize the need for strategies to identify and redact/anonymize/pseudonymize sensitive information, crucial for compliance and ethical AI in many domains.
-        *   *Format Conversion & Text Extraction:* Briefly mention tools and challenges in converting various input formats (PDF, DOCX, HTML, images via OCR) into clean text suitable for training.
-        *   *Normalization:* Cover text normalization steps like Unicode normalization, consistent whitespace handling, and case-folding (if appropriate for the domain and tokenizer).
-*   "What are the ethical implications and potential biases within the chosen corpus, and how can we programmatically identify or mitigate them *before* ingestion?"
-*   "How do we version control our datasets and preprocessing scripts?"
-*   **Tokenizer Adaptation/Extension for Domain Vocabulary (Brief Mention):** ✔️ If the domain features a significant amount of specialized vocabulary not well-represented by the base model's tokenizer (leading to many sub-word tokens for single concepts), briefly mention that tokenizer extension might be considered. This is a more advanced procedure involving adding new tokens and retraining parts of the embedding layer, often done in conjunction with FP. (Cross-reference to more detail in Section 7.1). This technique is itself a part of advanced DAPT strategies.
+Regardless of the specific DAPT technique chosen (CPT or more advanced methods), the quality, preparation, and structure of the domain corpus are paramount. "Garbage in, garbage out" strongly applies.
+
+*   **Sourcing and Curating the Domain-Specific Corpus:**
+    *   **Relevance and Scope:** Ensure the corpus is highly relevant to the target domain and tasks. Define the scope clearly – what knowledge should the model acquire?
+    *   **Quantity vs. Quality:** While a large corpus is generally good, high-quality, clean data is more important than sheer volume of noisy data. Aim for at least millions, preferably tens or hundreds of millions, of tokens for effective DAPT for general domains; specialized domains might see benefits with less if the data is highly targeted.
+*   **Data Cleaning and Preprocessing Pipelines:** Implement robust pipelines for:
+    *   **Format Conversion & Text Extraction:** Convert various input formats (PDF, DOCX, HTML, LaTeX, code repositories, images via OCR for scanned documents) into clean, plain text. This step is critical and often challenging.
+        *   **Structural Fidelity:** During text extraction, strive to convert structural elements from source documents into a coherent textual representation. The goal is for the model to learn from these structures as part of the language.
+            *   *Headings and Sections:* Preserve headings and section numbering (e.g., `## 2.1 System Components`). Consistent formatting helps the model recognize structure.
+            *   *Lists:* Convert bulleted or numbered lists into a textual format the model can parse (e.g., using hyphens or asterisks for bullets, or maintaining numbering).
+            *   *Tables:* Represent tables textually. Options include:
+                *   Linearized rows: "Row 1: HeaderA ValueA1 HeaderB ValueB1. Row 2: HeaderA ValueA2 HeaderB ValueB2."
+                *   Simple delimited text: `HeaderA | HeaderB \n ValueA1 | ValueB1 \n ValueA2 | ValueB2`
+                *   Markdown-like table format.
+                The choice depends on consistency and how well the model can learn the pattern.
+            *   *Cross-references:* Ensure in-document cross-references (e.g., "as discussed in Section 3.2") are preserved as text.
+        *   **Semantic Boundary Preservation:** During initial text extraction and concatenation, respect natural semantic boundaries (paragraphs, sections if possible) before further processing. While DAPT training instances become fixed-length blocks, starting with text that has good internal coherence improves learning.
+    *   **Deduplication:** Identify and remove exact or near-duplicate documents/passages. Duplicates can skew the model's learning and waste compute. Techniques include hash-based methods (MinHash with LSH) for near-duplicates or semantic similarity checks for paraphrased content (computationally more expensive).
+    *   **Quality Filtering:** Programmatically identify and remove low-quality text.
+        *   *Length Constraints:* Filter out very short or excessively long documents/segments.
+        *   *Language Identification:* Ensure text is in the target language(s).
+        *   *Perplexity Filtering:* Use a general-purpose language model to score sentences/documents; discard those with very high perplexity (indicating garbled or incoherent text).
+        *   *Heuristic Rules:* Remove boilerplate (headers, footers, navigation menus from web scrapes), lines with excessive special characters, or a high ratio of non-alphanumeric characters.
+    *   **Normalization:**
+        *   *Unicode Normalization (e.g., NFC, NFKC):* Standardize Unicode character representations.
+        *   *Whitespace Handling:* Normalize spaces, tabs, and newlines (e.g., strip leading/trailing whitespace, replace multiple spaces with a single space).
+        *   *Case-Folding (Optional):* Converting all text to lowercase can be considered if case is not semantically important for the domain and tokenizer, but generally, modern models handle case well.
+    *   **PII/Sensitive Data Handling:** Implement strategies to identify and redact, anonymize, or pseudonymize personally identifiable information (PII) and other sensitive data. This is crucial for ethical AI and regulatory compliance (e.g., GDPR, HIPAA). Tools include regex-based finders, NER models trained for PII, or specialized services.
+*   **Data Augmentation Strategies for DAPT (Optional, context-dependent):**
+    *   **Purpose:** To increase the diversity or effective size of the training corpus, especially if the original domain corpus is limited or lacks variation.
+    *   **Techniques:**
+        *   *Back-Translation:* Translate text to another language and then back to the original using a translation model. Can create paraphrases.
+        *   *Synonym Replacement:* Replace words with their synonyms (e.g., using WordNet), being careful not to alter meaning significantly.
+        *   *Random Noise/Perturbation (use with extreme caution):* Adding slight noise to embeddings or making minor word swaps. Risky as it can degrade quality.
+    *   **Considerations:** Augmentation must maintain high quality and relevance to the domain. Poor augmentation can harm performance.
+*   **Ethical Implications and Bias Mitigation:**
+    *   Analyze the corpus for potential social biases (gender, race, etc.) or representational harms.
+    *   Consider bias mitigation techniques during data collection, preprocessing (e.g., re-weighting, data augmentation for underrepresented groups), or model training, though robust solutions are an active research area. Be aware that DAPT will likely reinforce biases present in the corpus.
+*   **Dataset Versioning:** Use tools like DVC (Data Version Control) or Git LFS to version control your datasets and preprocessing scripts. This is crucial for reproducibility and tracking experiments.
+*   **Tokenizer Adaptation/Extension (Cross-reference Section 7.1):**
+    *   If the domain features a significant amount of specialized vocabulary not well-represented by the base model's tokenizer (resulting in many terms being split into multiple sub-word tokens), consider extending the tokenizer with new domain-specific tokens. This is an advanced step, detailed in Section 7.1, often performed in conjunction with DAPT, as the new embeddings for these tokens need to be learned.
 
 #### 4.3.4 Advanced DAPT Techniques: Tailoring Adaptation Beyond Standard CPT
 
-For more specialized domains or when CPT alone is insufficient, more advanced DAPT techniques can be employed. These often require more complex setups or domain-specific insights and build upon the foundation of understanding how CPT works. Many of these strategies can be combined with CPT.
+For more specialized domains, or when CPT alone is insufficient or sub-optimal, more advanced DAPT techniques can be employed. These often require more complex setups, domain-specific insights, or custom training logic. They generally build upon the foundation of how CPT works but add specific mechanisms or objectives.
 
 ##### 4.3.4.1 Contrastive Learning for Domain Adaptation
-*   **Explanation:** This approach trains the model to learn more discriminative domain-specific representations. It can involve:
-    *   *Domain-Adversarial Training:* Training a domain classifier to distinguish between base model embeddings and domain-adapted embeddings, while the DAPT process tries to "fool" this classifier, thereby aligning the representations.
-    *   *Instance-Level Contrastive Learning:* Pushing representations of semantically similar in-domain examples closer together in the embedding space, while pushing dissimilar or out-of-domain examples further apart (e.g., adapting SimCLR or MoCo principles for text).
+*   **Explanation:** This approach trains the model to learn more discriminative domain-specific representations by contrasting positive (similar) pairs against negative (dissimilar) pairs.
+    *   *Instance-Level Contrastive Learning (e.g., adapting SimCLR/MoCo):* Pushing representations of semantically similar in-domain text segments (e.g., augmentations of the same sentence, or sentences from the same paragraph) closer together in the embedding space, while pushing representations of dissimilar segments or out-of-domain examples further apart.
+    *   *Domain-Adversarial Contrast (related to GANs):* While not strictly contrastive in the SimCLR sense, could involve training a discriminator to distinguish base model general-domain embeddings from DAPT domain-specific embeddings, and the DAPT process tries to make its embeddings indistinguishable or superior from the discriminator's perspective on domain tasks.
 *   **Pros:**
-    *   ✔ Can lead to more robust and distinct domain-specific representations.
-    *   ✔ Potentially better at distinguishing subtle domain nuances and improving in-domain task performance.
+    *   ✔ Can lead to more robust and distinct domain-specific representations, potentially improving performance on tasks requiring fine-grained understanding.
+    *   ✔ Better at capturing subtle domain nuances.
 *   **Cons:**
-    *   ✔ Requires careful construction of positive/negative pairs or domain labels, adding data preparation complexity.
+    *   ✔ Requires careful construction of positive and negative pairs, which can be challenging for text.
     *   ✔ Training can be less stable and harder to tune than CPT.
-    *   ✔ May require custom loss functions and training loops.
+    *   ✔ May require custom loss functions (e.g., NT-Xent loss) and training loops.
 *   **Implementation Difficulty:** ⭐⭐⭐⭐☆ (Advanced).
 
 ##### 4.3.4.2 Domain-Specific Objective Functions & Auxiliary Tasks
-*   **Explanation:** This involves supplementing the primary language modeling loss (from CPT) with additional, domain-relevant learning objectives. These auxiliary tasks guide the model to learn specific aspects of the domain.
-    *   Examples: Predicting important domain-specific keywords or entities within a text; classifying text by domain sub-topics; a loss that encourages alignment of text representations with a domain knowledge graph.
+*   **Explanation:** This involves supplementing or replacing the primary language modeling loss (from CPT) with additional, domain-relevant learning objectives. These auxiliary tasks explicitly guide the model to learn specific aspects of the domain.
+    *   Examples:
+        *   Predicting important domain-specific keywords or entities within a text.
+        *   Classifying text by domain sub-topics or document types.
+        *   A loss that encourages alignment of text representations with a domain knowledge graph.
+        *   Masked Language Modeling (MLM) variants focused on domain terms (e.g., DMLM - Domain-Masked Language Model).
 *   **Pros:**
     *   ✔ Allows for explicit guidance towards learning features critical to the domain.
-    *   ✔ Can accelerate the learning of specific types of domain knowledge.
+    *   ✔ Can accelerate the learning of specific types of domain knowledge not efficiently captured by next-token prediction alone.
 *   **Cons:**
     *   ✔ Designing effective auxiliary tasks requires significant domain expertise and creativity.
-    *   ✔ Can complicate the training process and loss balancing.
+    *   ✔ Can complicate the training process (e.g., multiple loss terms to balance, potential for task interference).
     *   ✔ Performance benefits are highly dependent on the quality and relevance of the auxiliary tasks.
 *   **Implementation Difficulty:** ⭐⭐⭐⭐☆ (Advanced).
 
 ##### 4.3.4.3 Curriculum Learning for DAPT
-*   **Explanation:** This strategy involves structuring the domain corpus and presenting it to the model in a sequence of increasing complexity or specificity. For example, starting with general texts about the domain, then moving to moderately specific content, and finally to highly specialized or complex documents.
-*   **Implementation:**
-    *   **Step 1:** Start with general, foundational texts about the domain
-    *   **Step 2:** Introduce intermediate domain-specific content
-    *   **Step 3:** Finally incorporate specialized, complex domain texts
+*   **Explanation:** This strategy involves structuring the domain corpus and presenting it to the model in a sequence of increasing complexity or specificity. The idea is to ease the model into the domain.
+    *   Example Stages:
+        1.  Start with general, foundational texts about the domain or closely related, simpler domains.
+        2.  Introduce moderately specific content.
+        3.  Finally, incorporate highly specialized, complex, or noisy domain texts.
 *   **Pros:**
-    *   ✔ Can improve convergence and final model performance by easing the learning process.
-    *   ✔ May reduce overfitting on very complex examples early in training.
+    *   ✔ Can improve convergence speed and final model performance by providing a smoother learning trajectory.
+    *   ✔ May reduce the risk of early overfitting on very complex or noisy examples.
     *   ✔ Can lead to better generalization within the domain.
 *   **Cons:**
-    *   ✔ Requires manual or sophisticated automated curation of content by difficulty/specificity.
+    *   ✔ Requires manual or sophisticated automated curation and ordering of content by difficulty/specificity, which can be labor-intensive and subjective.
     *   ✔ Adds complexity to the data pipeline and training schedule.
     *   ✔ Determining the optimal curriculum structure and pacing can be challenging.
-*   **Implementation Difficulty:** ⭐⭐⭐☆☆ (Moderate) - The main challenge is data organization.
+*   **Implementation Difficulty:** ⭐⭐⭐☆☆ (Moderate) - The main challenge is data organization and defining the "curriculum."
 
 ##### 4.3.4.4 Domain Mixing Strategies for DAPT
-*   **Explanation:** These are techniques for combining the domain-specific corpus with data from the base model's original pre-training set or other relevant domains. This is often crucial to prevent catastrophic forgetting of general knowledge or to build multi-domain expertise.
-*   **Implementation Approaches:**
-    1.  **Proportional Mixing:** Create a dataset with fixed ratios of different corpora.
-    2.  **Dynamic Mixing/Annealing:** Adjust the mixing ratios during training (e.g., gradually increasing the proportion of domain-specific data).
-    3.  **Interleaved Batches:** Alternate batches from different corpora.
+*   **Explanation:** These are techniques for combining the domain-specific corpus with data from the base model's original pre-training set or other relevant general-purpose corpora. This is often crucial to prevent "catastrophic forgetting" of general language capabilities or to build multi-domain expertise.
+    *   **Implementation Approaches:**
+        *   *Proportional Mixing (Data Blending):* Create a training dataset by sampling from different corpora according to pre-defined ratios (e.g., 80% domain-specific, 20% general).
+        *   *Dynamic Mixing/Annealing:* Adjust the mixing ratios during training (e.g., start with more general data and gradually increase the proportion of domain-specific data, or vice-versa).
+        *   *Interleaved Batches:* Alternate batches from different corpora during training.
 *   **Pros:**
-    *   ✔ Helps prevent catastrophic forgetting of general language capabilities.
+    *   ✔ Helps prevent catastrophic forgetting of general language skills and world knowledge.
     *   ✔ Enables the model to maintain or develop multi-domain expertise.
-    *   ✔ Can improve transfer learning between related domains.
+    *   ✔ Can improve transfer learning between related domains if multiple domain corpora are mixed.
 *   **Cons:**
-    *   ✔ May dilute the specialization achieved compared to training purely on the target domain corpus.
-    *   ✔ Requires careful tuning of mixing ratios and scheduling.
-    *   ✔ Increases the overall size and diversity of the training data needed.
+    *   ✔ May dilute the specialization achieved compared to training purely on the target domain corpus if ratios are not optimal.
+    *   ✔ Requires careful tuning of mixing ratios and potentially dynamic scheduling.
+    *   ✔ Increases the overall size and diversity of the training data needed, potentially increasing training time.
 *   **Implementation Difficulty:** ⭐⭐⭐☆☆ (Moderate) - Primarily involves data pipeline management and experimentation with ratios.
 
-##### 4.3.4.5 Masked Language Modeling (MLM) Adaptation (for BERT-style models)
-*   **Explanation:** If the base model is an encoder-style model like BERT (which uses MLM as its pre-training objective), DAPT involves continuing MLM training on the domain corpus. This can be enhanced with domain-specific masking strategies (e.g., DMLM - Domain-Masked Language Model, which might preferentially mask important domain terms or whole phrases).
+##### 4.3.4.5 Structure-Aware Completion Training (Implicit Task Formulation)
+*   **Explanation:** This technique leverages the inherent structure of documents (e.g., sections, subsections, paragraphs in manuals or articles) to create self-supervised "completion" tasks. Instead of just predicting the next token in a linear sequence, the model is trained to generate entire structured parts of a document given contextual clues from that structure.
+    *   Examples:
+        *   Given a section title and its introduction, predict/complete the first subsection.
+        *   Given a subsection title and preceding context, generate the content of that subsection.
+        *   Masking out a paragraph within a section and training the model to regenerate it.
+*   **Pros:**
+    *   ✔ Encourages the model to learn higher-level document coherence and structural relationships.
+    *   ✔ Utilizes the natural organization of the domain corpus, reducing the need for artificial Q&A datasets for this stage.
+    *   ✔ Can improve generation of well-structured, longer-form text relevant to the domain's typical document formats.
+*   **Cons:**
+    *   ✔ Requires a corpus with reasonably consistent and parsable document structure.
+    *   ✔ Data preparation to create these structured completion tasks is more complex than simple text concatenation for CPT.
+    *   ✔ Defining appropriate "context clues" and "completion targets" needs careful design.
+*   **Implementation Difficulty:** ⭐⭐⭐⭐☆ (Advanced).
+
+##### 4.3.4.6 Implicit Instruction Pre-training (Stylistic Corpus Preparation)
+*   **Explanation:** This involves reformatting the domain corpus into a consistent "implicit instruction" style *before* DAPT, upon which standard next-token prediction is then performed. The goal is to make the model learn a specific input-output pattern or a conversational/instruction-following style from the DAPT stage itself.
+    *   Example: For technical manuals, each section/subsection could be formatted as:
+        `[IMPLICIT_QUESTION] What are the components of System X?`  
+        `[RESPONSE] System X consists of component A, component B, and component C. Component A is responsible for...`  
+        Here, the heading is framed as an implicit question, and the content as the response. The model then learns this pattern during next-token prediction DAPT.
+*   **Pros:**
+    *   ✔ Can imbue the model with a desired interaction style or an ability to respond to implicit queries based on document structure.
+    *   ✔ May better prepare the model for downstream instruction fine-tuning (SFT) if the formats are aligned.
+    *   ✔ Preserves document hierarchy while encouraging a specific generative pattern.
+*   **Cons:**
+    *   ✔ Requires significant effort to reformat the entire DAPT corpus consistently.
+    *   ✔ The chosen format needs to be carefully designed to be beneficial and not overly artificial.
+    *   ✔ May make the model overly specialized to this specific format if not balanced with other data.
+*   **Implementation Difficulty:** ⭐⭐⭐☆☆ (Moderate) - Data reformatting is the main challenge.
+
+##### 4.3.4.7 Retrieval-Augmented Pre-training (ReAP) for DAPT
+*   **Explanation:** During DAPT, for each segment of the domain corpus being processed, a retrieval system first fetches relevant documents or passages (e.g., from a larger version of the domain corpus itself, or an external knowledge base). These retrieved snippets are then concatenated or otherwise integrated with the original segment as input for the next-token prediction task. The model thus learns to incorporate and synthesize information from this dynamically retrieved context during its adaptation phase.
+*   **Pros:**
+    *   ✔ Allows the model to effectively access and learn from a much larger context than its fixed input window during DAPT.
+    *   ✔ Teaches the model to synthesize information from multiple sources within the domain from the pre-training stage.
+    *   ✔ Can lead to deeper factual grounding, better handling of long-range dependencies specific to the domain, and reduced hallucination.
+    *   ✔ May improve the model's ability to utilize retrieved context effectively if RAG is a downstream application.
+*   **Cons:**
+    *   ✔ Significantly increases computational cost and complexity due to the retrieval step within the training loop.
+    *   ✔ Requires a high-quality retriever and a well-indexed, comprehensive retrieval corpus.
+    *   ✔ Designing how to effectively integrate retrieved context into the model's input and attention mechanisms is non-trivial.
+    *   ✔ Training stability can be a challenge.
+*   **Implementation Difficulty:** ⭐⭐⭐⭐⭐ (Very Advanced).
+
+##### 4.3.4.8 Explicit Multi-Task Domain-Adaptive Pretraining
+*   **Explanation:** This is a more structured approach to using auxiliary tasks (see 4.3.4.2). The base language modeling objective (e.g., next-token prediction) is *jointly optimized* with several other explicit, domain-relevant supervised or self-supervised tasks. The model typically has separate "heads" for these tasks, and their respective losses are combined (often with weighting) to compute the total loss for backpropagation.
+    *   Example Tasks:
+        *   Domain Language Modeling (primary task).
+        *   Domain Classification (e.g., "is this text about topic A or topic B within the domain?").
+        *   Key Entity Recognition/Tagging (training to identify domain-specific entities).
+        *   Sentence Reordering or Coherence Prediction within domain texts.
+*   **Pros:**
+    *   ✔ Can lead to richer and more versatile domain representations by explicitly teaching diverse skills.
+    *   ✔ Provides strong inductive biases for learning specific types of domain knowledge.
+    *   ✔ May improve performance on a wider array of downstream tasks related to the auxiliary objectives.
+*   **Cons:**
+    *   ✔ Significantly increases complexity in model architecture (multiple heads) and training (data preparation for each task, loss balancing, potential negative task interference).
+    *   ✔ Often requires labeled data for the auxiliary tasks, unless they are cleverly designed to be self-supervised from the domain corpus.
+*   **Implementation Difficulty:** ⭐⭐⭐⭐⭐ (Very Advanced).
+
+##### 4.3.4.9 Domain-Adversarial Training for DAPT
+*   **Explanation:** This technique aims to learn domain-invariant features, reducing the gap between a source (e.g., general pre-training) domain and the target domain. A domain classifier is trained to distinguish between representations (e.g., hidden states) generated by the LLM from source domain data versus target domain data. Simultaneously, the LLM is trained not only on its primary domain task (e.g., language modeling on the target corpus) but also to generate representations that "fool" this domain classifier (often via a gradient reversal layer). This encourages the LLM's representations to become similar or indistinguishable across these domains, at least for the features the classifier focuses on.
+*   **Pros:**
+    *   ✔ Can promote better generalization and knowledge transfer by aligning feature distributions.
+    *   ✔ Potentially more robust to superficial domain shifts if some core knowledge needs to be preserved but adapted.
+*   **Cons:**
+    *   ✔ Can be challenging to train stably; balancing the adversarial objective with the primary LM objective requires careful tuning.
+    *   ✔ May not be ideal if the goal is to learn highly specific and *distinct* features of the target domain rather than invariant ones.
+    *   ✔ Requires access to or samples from the "source" domain data or representations for the classifier.
+*   **Implementation Difficulty:** ⭐⭐⭐⭐☆ (Advanced).
+
+##### 4.3.4.10 Masked Language Modeling (MLM) Adaptation (Primarily for BERT-style models)
+*   **Explanation:** If the base model is an encoder-style model like BERT, RoBERTa, or ELECTRA (which uses MLM or a similar objective as its pre-training task), DAPT involves continuing this MLM-style training on the domain corpus. Tokens in the input are randomly masked, and the model learns to predict the original tokens. This can be enhanced with domain-specific masking strategies (e.g., DMLM - Domain-Masked Language Model, which might preferentially mask important domain terms or whole phrases).
 *   **Pros:**
     *   ✔ Highly effective for encoder models to learn rich bidirectional contextual representations specific to the domain.
+    *   ✔ Directly aligns with the original pre-training objective of such models.
 *   **Cons:**
-    *   ✔ Not directly applicable as the primary DAPT method for decoder-only causal LMs (GPT, Llama), which are more commonly used for generation tasks that often follow DAPT.
-    *   ✔ Domain-specific masking strategies require careful design.
-*   **Implementation Difficulty:** ⭐⭐⭐☆☆ (Moderate, assuming an MLM base model and standard MLM scripts).
+    *   ✔ Not directly applicable as the primary DAPT method for decoder-only causal LMs (GPT, Llama, Mistral), which are more commonly used for generative tasks that often follow DAPT. (Though decoder models can have MLM-like auxiliary tasks).
+    *   ✔ Domain-specific masking strategies require careful design and domain knowledge.
+*   **Implementation Difficulty:** ⭐⭐⭐☆☆ (Moderate, assuming an MLM base model and access to standard MLM training scripts).
 
-##### 4.3.4.6 Tokenizer Adaptation (as part of an Advanced DAPT strategy)
-*   **Explanation:** For domains with a significant amount of unique vocabulary not well-represented by the base model's tokenizer, adapting or extending the tokenizer is a critical step. This involves adding new domain-specific tokens. The model's embedding matrix (and output layer if tied) must then be resized, and these new embeddings are learned during the DAPT process.
+##### 4.3.4.11 Tokenizer Adaptation (as an integral part of an Advanced DAPT strategy)
+*   **Explanation:** As briefly mentioned in 4.3.3 and detailed in Section 7.1, for domains with extensive unique vocabulary poorly handled by the base model's tokenizer (leading to over-segmentation of terms), adapting or extending the tokenizer is a critical step. This involves training a new tokenizer or adding new domain-specific tokens to the existing one. The model's embedding matrix (and output layer if tied) must then be resized, and these new token embeddings are learned from scratch or initialized carefully during the DAPT process.
 *   **Pros:**
-    *   ✔ Drastically improves the model's ability to "see" and process core domain terms efficiently.
-    *   ✔ Can reduce sequence lengths and improve learning of domain concepts.
+    *   ✔ Drastically improves the model's ability to "see" and process core domain terms efficiently as single units.
+    *   ✔ Can reduce sequence lengths and improve learning speed and representation quality for domain concepts.
 *   **Cons:**
-    *   ✔ Adds significant complexity to the DAPT pipeline.
-    *   ✔ Requires careful handling of model weight initialization for new tokens.
-    *   ✔ Decisions about which tokens to add need to be data-driven.
-*   **Implementation Difficulty:** ⭐⭐⭐⭐☆ (Advanced) - (Cross-reference to more detail in Section 7.1).
-
+    *   ✔ Adds significant complexity to the DAPT pipeline (tokenizer training, model resizing, embedding initialization).
+    *   ✔ Requires careful handling of how new token embeddings are initialized and learned.
+    *   ✔ Decisions about which tokens to add need to be data-driven (e.g., based on frequency of unknown token sequences).
+*   **Implementation Difficulty:** ⭐⭐⭐⭐☆ (Advanced).
 
 
 ### 4.4 Decision: Perform Supervised Fine-tuning (SFT) for Instructions?
