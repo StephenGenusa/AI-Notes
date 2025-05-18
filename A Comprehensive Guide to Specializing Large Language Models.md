@@ -245,15 +245,6 @@ Path F: Use Aligned Instruction-Following Domain LLM (potentially with RAG for g
     *   **Consequences:** Model may struggle with domain-specific jargon, nuances, or authentic domain style. May rely more heavily on explicit prompting or RAG (see Section 6).
 *   **Path (Yes - Perform FP):** Leads to STAGE 1 (Section 4.3).
 
-You are absolutely correct! In my focus on differentiating the DAPT concepts and maintaining consistent numbering, I inadvertently omitted the valuable, practical details from the original document sections like `4.3.1 Core Mechanics`, `4.3.2 Practical Implementation (Hugging Face)`, `4.3.3 Outcome of Corpus Ingestion`, `4.3.4 Advanced Data Considerations` (which I did partially bring in as 4.3.2 but it was more detailed originally), `4.3.5 Curriculum Learning`, and `4.3.6 Domain Mixing`.
-
-My apologies. The goal should be to enhance and clarify, not replace good existing content.
-
-Let's re-integrate those pieces properly, placing them primarily under the "Continued Pre-training (CPT)" section as that's what they mostly describe, and ensuring the other advanced DAPT techniques are still well-defined.
-
-Here's a more complete and integrated version of section 4.3:
-
----
 
 ### 4.3 STAGE 1: Domain-Adaptive Pretraining (DAPT) / Further Pre-training (FP) / Corpus Ingestion
 
