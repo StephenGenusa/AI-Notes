@@ -13,7 +13,7 @@ This data suggests that asking models seemingly arbitrary preference questions c
 Nemotron was replying with \*\*K\*\* instead of just K so I appended the instruction about "unadorned letter". Another model I tested replied with Python I could run so I added the clause not to return a script.
 
 
-## Key Forensic Insights
+## Key Forensic Insights From Claude Opus 4.0
 
 This is fascinating forensic data! The "favorite letter" probe reveals several deep insights about AI model architectures, training, and behavior patterns. Here's my analysis:
 
