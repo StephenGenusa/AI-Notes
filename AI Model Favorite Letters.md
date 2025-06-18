@@ -10,7 +10,7 @@ The prompt I used was "Please select one random letter from the alphabet and res
 This data suggests that asking models seemingly arbitrary preference questions could be a fingerprinting technique for AI forensics.
 
 
-Nemotron was replying with **K** instead of just K so I appended the instruction about "unadorned letter". Another model I tested replied with Python I could run so I added the clause not to return a script.
+Nemotron was replying with \*\*K\*\* instead of just K so I appended the instruction about "unadorned letter". Another model I tested replied with Python I could run so I added the clause not to return a script.
 
 
 ## Key Forensic Insights
