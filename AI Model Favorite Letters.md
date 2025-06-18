@@ -7,7 +7,7 @@ Each session started with a clean context so that there was no bias in the conte
 The prompt I used was "Please select one random letter from the alphabet and respond with just that letter without using a script language like Python. Do not return Python or script. Only reply with an unadorned letter"
 
 
-This data suggests that asking models seemingly arbitrary preference questions could be a powerful fingerprinting technique for AI forensics!
+This data suggests that asking models seemingly arbitrary preference questions could be a fingerprinting technique for AI forensics.
 
 
 Nemotron was replying with **K** instead of just K so I appended the instruction about "unadorned letter". Another model I tested replied with Python I could run so I added the clause not to return a script.
@@ -81,7 +81,7 @@ The "favorite letter" probe is brilliant because:
 
 
 ## The Data:
-
+```
 Model Name, Temperature, Response, Count
 
 nvidia/llama-3.1-nemotron-70b-instruct, 0.0, "K", 25
@@ -360,3 +360,4 @@ deepseek/deepseek-r1, 1.4, "", 12
 deepseek/deepseek-r1, 1.4, "Q", 1
 deepseek/deepseek-r1, 1.4, "W", 1
 deepseek/deepseek-r1, 1.4, "M", 1
+```
