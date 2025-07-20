@@ -96,7 +96,7 @@
 
 ## 1. Introduction: The LLM Specialization Journey
 
-Large Language Models (LLMs) have demonstrated remarkable capabilities in understanding and generating human language. While general pre-trained models possess broad knowledge, many applications require specialized expertise, particular styles, or adherence to specific instructions. This document provides a comprehensive guide to the journey of specializing an LLM, transforming it from a generalist into a focused expert.
+Large Language Models (LLMs) have demonstrated remarkable capabilities in generating human language. While general pre-trained models possess broad knowledge, many applications require specialized expertise, particular styles, or adherence to specific instructions. This document provides a comprehensive guide to the journey of specializing an LLM, transforming it from a generalist into a focused expert.
 
 We will explore a decision-making lifecycle, detailing various stages from domain corpus ingestion to instruction fine-tuning, preference alignment, and task-specific adaptations. For each stage, we will discuss the purpose, process, data requirements, technical implementation insights (often using Python and Hugging Face Transformers), advantages, disadvantages, and critical considerations. Key techniques like Parameter-Efficient Fine-Tuning (PEFT), understanding `block_size`, and the role of Retrieval Augmented Generation (RAG) will be interwoven throughout. This guide aims to equip AI engineers with the knowledge to navigate the complexities of LLM specialization effectively.
 
@@ -108,9 +108,9 @@ Specializing a Large Language Model (LLM) means tailoring a general-purpose LLM 
 
 The journey typically begins by selecting an appropriate pre-trained base LLM. From there, a series of key decisions and potential stages arise:
 
-1.  **Domain Adaptation (Further Pre-training - FP):** If an application demands deep, nuanced understanding of a specific field's knowledge, vocabulary, and characteristic writing style (e.g., medicine, law, finance), the LLM undergoes further pre-training. This involves continuing its training exclusively on a large, high-quality corpus of text from that domain. The goal is for the LLM to internalize these domain-specific patterns, effectively learning to "think" and "communicate" like an expert in that area.
+1.  **Domain Adaptation (Further Pre-training - FP):** If an application demands deep, nuanced details of a specific field's knowledge, vocabulary, and characteristic writing style (e.g., medicine, law, finance), the LLM undergoes further pre-training. This involves continuing its training exclusively on a large, high-quality corpus of text from that domain. The goal is for the LLM to internalize these domain-specific patterns, effectively learning to "think" and "communicate" like an expert in that area.
 
-2.  **Instruction Following (Supervised Fine-tuning - SFT):** To make the LLM more controllable and useful for interactive tasks, it is then fine-tuned on a dataset of "instruction-response" pairs. These examples teach the model how to understand and accurately follow specific commands or answer questions in a desired format (e.g., "Summarize this document: {document} -> {summary}", "Translate this to French: {text} -> {translation}"). This stage is crucial for developing models that can act as helpful assistants or execute defined tasks.
+2.  **Instruction Following (Supervised Fine-tuning - SFT):** To make the LLM more controllable and useful for interactive tasks, it is then fine-tuned on a dataset of "instruction-response" pairs. These examples teach the model how to accurately follow specific commands or answer questions in a desired format (e.g., "Summarize this document: {document} -> {summary}", "Translate this to French: {text} -> {translation}"). This stage is crucial for developing models that can act as helpful assistants or execute defined tasks.
 
 3.  **Preference Alignment (RLHF/DPO):** Even after SFT, a model's outputs might not always align perfectly with human expectations for qualities like helpfulness, harmlessness, truthfulness, or conciseness. Preference alignment techniques, such as Reinforcement Learning from Human Feedback (RLHF) or Direct Preference Optimization (DPO), further refine the model. This is achieved by training the LLM (or an auxiliary reward model in RLHF) on data where humans have indicated preferences between different model-generated responses to the same prompt. This "steers" the LLM towards generating outputs that are more desirable and trustworthy.
 
@@ -299,10 +299,10 @@ This section will now dive deep into these concepts, providing details on how to
 *   **Process:** The model undergoes additional pre-training, primarily or exclusively on the domain corpus. The specific techniques employed can range from straightforward continuation of the original pre-training objective to more specialized, domain-aware methods.
 *   **Output:** A **Domain-Adapted LLM**, which has internalized aspects of the target domain.
 *   **General Advantages of DAPT:**
-    *   ✔ Improved understanding and generation of domain-specific text.
+    *   ✔ Improved generation of domain-specific text.
     *   ✔ Better performance on downstream domain tasks due to more relevant internal representations.
     *   ✔ Capability to capture nuanced stylistic elements of the domain.
-    *   ✔ Knowledge becomes embedded in the model's parameters, enabling more inherent domain understanding without necessarily relying on external retrieval at inference time for foundational knowledge.
+    *   ✔ Knowledge becomes embedded in the model's parameters, enabling more inherent domain knowledge without necessarily relying on external retrieval at inference time for foundational knowledge.
 *   **General Disadvantages/Considerations for DAPT:**
     *   ✔ Requires a significant, high-quality domain corpus.
     *   ✔ Can be computationally intensive (though PEFT, see Section 5.1, helps manage this).
@@ -1231,7 +1231,7 @@ This is a specific application of STAGE 1 (Further Pre-training / Corpus Ingesti
     *   **How to Avoid (for on-request style):** Use PEFT (Section 5.1), moderate fine-tuning (fewer epochs, lower learning rate), or interleave general data.
 *   **"Style on Request" (Desirable):**
     *   **How:**
-        1.  **Robust Pre-trained LLMs:** Models like GPT-4 often understand styles implicitly. Prompt: "Rewrite this in Hemingway's style."
+        1.  **Robust Pre-trained LLMs:** Models like GPT-4 often detect styles implicitly. Prompt: "Rewrite this in Hemingway's style."
         2.  **Well-Managed Stylistic Fine-tuning (with PEFT):** Fine-tune on the author's corpus using PEFT (see Section 4.3.2 for general setup). Then, activate the style via prompting. The base model retains general capabilities; the LoRA weights are an "adapter."
     *   **The Key:** The model learns the style but only adopts it when explicitly prompted.
 
