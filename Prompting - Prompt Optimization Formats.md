@@ -22,34 +22,21 @@ The following table summarizes comparisons from select studies, focusing on rela
 
 | Study (arXiv ID) | Tasks Evaluated | Plain English Performance | JSON Performance | YAML Performance | Key Notes |
 |------------------|-----------------|---------------------------|------------------|------------------|-----------|
-| 2411.10541 | Reasoning (MMLU), Code Gen (HumanEval), Translation (CODEXGLUE) | Lower accuracy (e.g., 66.5% in Java2CS translation) | Often highest (e.g., 78.4% in Java2CS; 59.76% in HumanEval) | Mixed (e.g., 69.05% in HumanEval-X but 24.6% in NER) | Up to 40% variance; JSON best for smaller models, larger models more format-robust.
-<argument name="citation_id">0</argument>
- |
-| 2507.03254 | Multi-Agent Reasoning (GAIA, HotpotQA, VirtualHome) | Lower accuracy (e.g., 6.1–10.9% below structured) | N/A (codified structure similar to JSON) | N/A | Structured outperforms by 3–36%; 55–87% token reduction.
-<argument name="citation_id">35</argument>
- |
-| 2501.05255 | Function Calling (API selection/params) | N/A | High (e.g., 0.986 syntax accuracy) | Low (e.g., 0.525 syntax accuracy) | JSON superior due to reduced ambiguity; YAML indentation-sensitive.
-<argument name="citation_id">26</argument>
- |
-| 2502.18695 | Content Moderation (policy enforcement) | Baseline accuracy | Variable (differences observed) | Variable (differences observed) | Formats affect outcomes via attention biases; no universal winner.
-<argument name="citation_id">47</argument>
- |
+| 2411.10541 | Reasoning (MMLU), Code Gen (HumanEval), Translation (CODEXGLUE) | Lower accuracy (e.g., 66.5% in Java2CS translation) | Often highest (e.g., 78.4% in Java2CS; 59.76% in HumanEval) | Mixed (e.g., 69.05% in HumanEval-X but 24.6% in NER) | Up to 40% variance; JSON best for smaller models, larger models more format-robust. |
+| 2507.03254 | Multi-Agent Reasoning (GAIA, HotpotQA, VirtualHome) | Lower accuracy (e.g., 6.1–10.9% below structured) | N/A (codified structure similar to JSON) | N/A | Structured outperforms by 3–36%; 55–87% token reduction. |
+| 2501.05255 | Function Calling (API selection/params) | N/A | High (e.g., 0.986 syntax accuracy) | Low (e.g., 0.525 syntax accuracy) | JSON superior due to reduced ambiguity; YAML indentation-sensitive. |
+| 2502.18695 | Content Moderation (policy enforcement) | Baseline accuracy | Variable (differences observed) | Variable (differences observed) | Formats affect outcomes via attention biases; no universal winner. |
 
 Specific arXiv papers addressing this topic include:
 - arXiv:2411.10541 ("Does Prompt Formatting Have Any Impact on LLM Performance?") – Directly compares plain text, Markdown, JSON, and YAML input prompts on GPT models.
-<argument name="citation_id">0</argument>
 
 - arXiv:2507.03254 ("CodeAgents: A Token-Efficient Framework for Codified Multi-Agent Reasoning in LLMs") – Evaluates codified structured prompts vs. natural language.
-<argument name="citation_id">35</argument>
 
 - arXiv:2501.05255 ("CallNavi, A Challenge and Empirical Study on LLM Function Calling and Routing") – Analyzes JSON vs. YAML in tool/API prompts.
-<argument name="citation_id">26</argument>
 
 - arXiv:2502.18695 ("Rethinking Content Moderation in the Age of Large Language Models") – Examines plain text, XML, YAML, and JSON prompt formats in policy tasks.
-<argument name="citation_id">47</argument>
 
 - arXiv:2408.02442 ("Let Me Speak Freely? A Study on the Impact of Format Restrictions on Performance of Large Language Models") – Focuses more on output constraints but referenced for input format cost-effectiveness (YAML vs. JSON).
-<argument name="citation_id">32</argument>
 
 
 
