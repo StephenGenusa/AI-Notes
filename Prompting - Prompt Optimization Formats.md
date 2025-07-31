@@ -1,5 +1,59 @@
 # Prompting - Prompt Optimization Formats
 
+
+The latest research on prompt engineering for large language models (LLMs) indicates that the format of input prompts—whether plain English (natural language), JSON, YAML, or other structured variants—can significantly influence model performance, including accuracy, consistency, token efficiency, and robustness across tasks like reasoning, code generation, translation, and content moderation. While no single format is universally superior, structured formats like JSON and YAML often outperform plain English prompts in smaller models (e.g., GPT-3.5 variants) by providing clearer structure that reduces ambiguity and improves parsing, though larger models (e.g., GPT-4) tend to be more resilient to format variations. Effectiveness varies by task, model size, and specific implementation, with structured prompts sometimes yielding up to 40% performance gains in certain scenarios but introducing trade-offs like increased sensitivity to syntax errors in formats like YAML.
+
+
+Key findings from recent studies include:
+
+- Structured prompts (e.g., JSON or codified pseudocode) consistently enhance reasoning accuracy and token efficiency compared to natural language baselines, with gains of 3–36 percentage points in benchmarks like GAIA and HotpotQA, alongside 55–87% reductions in input tokens.
+
+- In evaluations across natural language reasoning, code generation, and translation tasks, JSON-formatted prompts frequently outperform plain text (e.g., 78.4% vs. 66.5% accuracy in code translation for GPT-3.5-turbo), while YAML shows mixed results but can excel in token-cost efficiency for models like GPT-3.5-Turbo due to lower verbosity compared to JSON.
+
+
+- For function calling and API routing, JSON as an input format achieves higher syntax and structure accuracy (e.g., 0.986 syntax accuracy) than YAML (e.g., 0.525), with mixed JSON-YAML configurations mitigating some errors but underscoring JSON's reliability due to simpler syntax.
+
+
+- In content moderation, variations in prompt formatting (plain text, XML, YAML, JSON) lead to measurable differences in accuracy, attributed to LLMs' sensitivity to positional encoding and structure, though specific gains depend on the policy integration.
+
+
+
+The following table summarizes comparisons from select studies, focusing on relative effectiveness (higher scores indicate better performance in the noted metric):
+
+| Study (arXiv ID) | Tasks Evaluated | Plain English Performance | JSON Performance | YAML Performance | Key Notes |
+|------------------|-----------------|---------------------------|------------------|------------------|-----------|
+| 2411.10541 | Reasoning (MMLU), Code Gen (HumanEval), Translation (CODEXGLUE) | Lower accuracy (e.g., 66.5% in Java2CS translation) | Often highest (e.g., 78.4% in Java2CS; 59.76% in HumanEval) | Mixed (e.g., 69.05% in HumanEval-X but 24.6% in NER) | Up to 40% variance; JSON best for smaller models, larger models more format-robust.
+<argument name="citation_id">0</argument>
+ |
+| 2507.03254 | Multi-Agent Reasoning (GAIA, HotpotQA, VirtualHome) | Lower accuracy (e.g., 6.1–10.9% below structured) | N/A (codified structure similar to JSON) | N/A | Structured outperforms by 3–36%; 55–87% token reduction.
+<argument name="citation_id">35</argument>
+ |
+| 2501.05255 | Function Calling (API selection/params) | N/A | High (e.g., 0.986 syntax accuracy) | Low (e.g., 0.525 syntax accuracy) | JSON superior due to reduced ambiguity; YAML indentation-sensitive.
+<argument name="citation_id">26</argument>
+ |
+| 2502.18695 | Content Moderation (policy enforcement) | Baseline accuracy | Variable (differences observed) | Variable (differences observed) | Formats affect outcomes via attention biases; no universal winner.
+<argument name="citation_id">47</argument>
+ |
+
+Specific arXiv papers addressing this topic include:
+- arXiv:2411.10541 ("Does Prompt Formatting Have Any Impact on LLM Performance?") – Directly compares plain text, Markdown, JSON, and YAML input prompts on GPT models.
+<argument name="citation_id">0</argument>
+
+- arXiv:2507.03254 ("CodeAgents: A Token-Efficient Framework for Codified Multi-Agent Reasoning in LLMs") – Evaluates codified structured prompts vs. natural language.
+<argument name="citation_id">35</argument>
+
+- arXiv:2501.05255 ("CallNavi, A Challenge and Empirical Study on LLM Function Calling and Routing") – Analyzes JSON vs. YAML in tool/API prompts.
+<argument name="citation_id">26</argument>
+
+- arXiv:2502.18695 ("Rethinking Content Moderation in the Age of Large Language Models") – Examines plain text, XML, YAML, and JSON prompt formats in policy tasks.
+<argument name="citation_id">47</argument>
+
+- arXiv:2408.02442 ("Let Me Speak Freely? A Study on the Impact of Format Restrictions on Performance of Large Language Models") – Focuses more on output constraints but referenced for input format cost-effectiveness (YAML vs. JSON).
+<argument name="citation_id">32</argument>
+
+
+
+
 ## Natural Language Prompts
 
 Natural language prompts (English expressions) have been found to be useful for flexible, reasoning-heavy tasks, creative generation, and exploratory queries where nuance and human-like conversation are key. They excel in scenarios requiring adaptability but can lead to ambiguity without structure. Research from 2024-2025 shows they often serve as a strong baseline, with performance variations up to 40% compared to structured formats, particularly outperforming in complex reasoning [1][2][3][4].
